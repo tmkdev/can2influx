@@ -70,11 +70,14 @@ def main():
 
     notifier = can.Notifier(vcan0, listeners)
 
+
+    packetcount=0
     try:
         while running:
             msg = reader.get_message()
             #if msg is None:
             #    running=False 
+            packetcount+=1
 
             try:
                 m = db.get_message_by_frame_id(msg.arbitration_id)
@@ -89,6 +92,9 @@ def main():
                 pass
             except:
                 logging.exception(f'Msg parse fail {m.name}')
+
+            if packetcount % 20000 == 0:
+                logging.warning(f'Processed canbus {packetcount} packets')
 
             
     except:
