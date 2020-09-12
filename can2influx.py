@@ -54,7 +54,7 @@ def main():
     jobtimestamp = datetime.datetime.now().strftime('%Y_%m_%d_%H_%M_%S')
     logpath=os.getenv('CAN_LOGDIR')
 
-    canbus = os.getenv('canbus', 'vcan0')
+    canbus = os.getenv('CANBUS', 'vcan0')
     logging.warning(f'using canbus {canbus}')
 
     timestamp = datetime.datetime.now().strftime('%Y%M%d%h%m%s')
