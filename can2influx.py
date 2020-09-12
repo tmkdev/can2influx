@@ -54,18 +54,19 @@ def main():
     jobtimestamp = datetime.datetime.now().strftime('%Y_%m_%d_%H_%M_%S')
     logpath=os.getenv('CAN_LOGDIR')
 
-    canbus ='vcan0'
+    canbus = os.getenv('canbus', 'vcan0')
+    logging.warning(f'using canbus {canbus}')
 
     timestamp = datetime.datetime.now().strftime('%Y%M%d%h%m%s')
 
     db = cantools.database.load_file('/home/pi/canbus_dbc/gm_global_a_hs.dbc')
+
     msgqueue = queue.Queue()
-    running = True
 
     iwriter = threading.Thread(target=influxwriter, args=(msgqueue, ))
     iwriter.start()
 
-    vcan0 = can.Bus(canbus, bustype='socketcan')
+    bus = can.Bus(canbus, bustype='socketcan')
 
     reader = can.BufferedReader()
     logger = can.Logger(f'{logpath}/{jobtimestamp}_{canbus}.log')
@@ -75,15 +76,12 @@ def main():
         logger
     ]
 
-    notifier = can.Notifier(vcan0, listeners)
-
+    notifier = can.Notifier(bus, listeners)
 
     packetcount=0
     try:
-        while running:
+        while True:
             msg = reader.get_message()
-            #if msg is None:
-            #    running=False 
             packetcount+=1
 
             try:
@@ -111,7 +109,7 @@ def main():
 
     iwriter.join()
     notifier.stop()
-    vcan0.shutdown()
+    bus.shutdown()
 
 if __name__ == '__main__':
     main()
