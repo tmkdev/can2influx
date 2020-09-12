@@ -17,8 +17,15 @@ def influxwriter(msgqueue):
     influxdb.create_database(idb)
     msgbuf = []
 
-    while True:
+    running = True
+
+    while running:
         imsg = msgqueue.get()
+        if imsg == -1:
+            running=False
+            influxdb.write_points(msgbuf)
+            continue
+
         msgbuf.append(imsg)
 
         try:
@@ -97,9 +104,10 @@ def main():
                 logging.warning(f'Processed canbus {packetcount} packets')
 
             
+    except KeyboardInterrupt:
+        msgqueue.put(-1)
     except:
-        logging.exception('Timeout?')
-
+        logging.exception('Unhandled message parse Error')
 
     iwriter.join()
     notifier.stop()
